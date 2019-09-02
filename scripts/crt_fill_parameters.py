@@ -90,14 +90,14 @@ def crt_fill_parameters(config_path):
     try:
         crt_dpit = inputs_cfg.getfloat('INPUTS', 'crt_dpit')
     except ConfigParser.NoOptionError:
-        crt_dpit = 0.01
+        crt_dpit = 0.02
         logging.info(
             '  Missing INI parameter, setting {} = {}'.format(
                 'crt_dpit', crt_dpit))
     try:
         crt_outitmax = inputs_cfg.getint('INPUTS', 'crt_outitmax')
     except ConfigParser.NoOptionError:
-        crt_outitmax = 100000
+        crt_outitmax = 1000000
         logging.info(
             '  Missing INI parameter, setting {} = {}'.format(
                 'crt_outitmax', crt_outitmax))

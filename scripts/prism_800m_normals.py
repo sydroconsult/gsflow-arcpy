@@ -146,7 +146,7 @@ def prism_800m_parameters(config_path, data_name='ALL'):
     for data_name in data_name_list:
         logging.info('\n{}'.format(data_name))
         prism_normal_re = re.compile(
-            'PRISM_(?P<type>%s)_30yr_normal_800mM2_(?P<month>\d{2})_bil.bil$' % data_name,
+            'PRISM_(?P<type>%s)_(?P<month>\d{2}).bil$' % data_name,
             re.IGNORECASE)
 
         # Search all files & subfolders in prism folder

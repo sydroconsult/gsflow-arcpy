@@ -1171,41 +1171,24 @@ def zone_by_centroid_func(zone_path, zone_field, zone_value,
     arcpy.Intersect_analysis(
         (hru_point_path, zone_path), zone_int_path)
 
-    # DEADBEEF - Why do I make a layer and select all features?
-    zone_int_layer = 'zone_int_layer'
-    arcpy.MakeFeatureLayer_management(zone_int_path, zone_int_layer)
-    arcpy.SelectLayerByAttribute_management(zone_int_layer, 'CLEAR_SELECTION')
-    arcpy.SelectLayerByAttribute_management(zone_int_layer, 'SWITCH_SELECTION')
-
-    n = int(arcpy.GetCount_management(zone_int_layer).getOutput(0))
-    block_size = 200000
-    for i, x in enumerate(range(0, n, block_size)):
-        logging.debug('    FIDS: {}-{}'.format(x, x + block_size))
-        subset_str = '"{0}" >= {1} AND "{0}" < {2}'.format(
-            hru_param.fid_field, x, x + block_size)
-            # arcpy.Describe(zone_int_layer).OIDFieldName, x, x + block_size)
-
-        # Read in FID of selected cells
-        hru_point_dict = dict()
-        fields = (hru_param.fid_field, zone_value_field)
-        with arcpy.da.SearchCursor(zone_int_layer, fields, subset_str) as s_cursor:
-            for row in s_cursor:
-                hru_point_dict[int(row[0])] = row[1]
-
-        # Set value of selected HRU cells
-        fields = (hru_param.fid_field, zone_field)
-        with arcpy.da.UpdateCursor(hru_param_path, fields, subset_str) as u_cursor:
-            for row in u_cursor:
-                # Remove items to speed up subsequent searches
-                try:
-                    row[1] = hru_point_dict.pop(int(row[0]))
-                    u_cursor.updateRow(row)
-                except KeyError:
-                    pass
-        del hru_point_dict
-
-    # Cleanup
-    arcpy.Delete_management(zone_int_layer)
+    fields = (hru_param.fid_field, zone_value_field)
+    hru_point_dict = dict()
+    with arcpy.da.SearchCursor(zone_int_path, fields) as s_cursor:
+        for row in s_cursor:
+            hru_point_dict[int(row[0])] = row[1]
+    logging.debug('  {} intersections found'.format(len(hru_point_dict)))
+    
+    # Set value of intersected HRU cells
+    fields = (hru_param.fid_field, zone_field)
+    with arcpy.da.UpdateCursor(hru_param_path, fields) as u_cursor:
+        for row in u_cursor:
+            # Remove items to speed up subsequent searches
+            try:
+                row[1] = hru_point_dict.pop(int(row[0]))
+                u_cursor.updateRow(row)
+            except KeyError:
+                pass
+    del hru_point_dict
 
 
 def jensen_haise_func(hru_param_path, jh_coef_field, dem_field,

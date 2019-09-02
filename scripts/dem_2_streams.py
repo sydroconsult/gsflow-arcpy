@@ -145,6 +145,7 @@ def flow_parameters(config_path):
     dem_adj_path = os.path.join(flow_temp_ws, 'dem_adj.img')
     lake_id_path = os.path.join(flow_temp_ws, 'lake_id.img')
     dem_sink_path = os.path.join(flow_temp_ws, 'dem_sink.img')
+    dem_mod_path = os.path.join(flow_temp_ws, 'dem_mod.img')
     dem_fill_path = os.path.join(flow_temp_ws, 'dem_fill.img')
     flow_dir_path = os.path.join(flow_temp_ws, 'flow_dir.img')
     flow_dir_points = os.path.join(flow_temp_ws, 'flow_dir_points.shp')
@@ -457,6 +458,7 @@ def flow_parameters(config_path):
     if 'SWALE' in model_point_types:
         logging.debug('  Setting DEM_ADJ values to NoData for SWALE cells')
         dem_mod_obj = arcpy.sa.Con(arcpy.sa.IsNull(swale_obj), dem_mod_obj)
+    dem_mod_obj.save(dem_mod_path)
 
     logging.info('  Filling DEM_ADJ (8-way)')
     dem_fill_obj = arcpy.sa.Fill(dem_mod_obj)
@@ -522,7 +524,8 @@ def flow_parameters(config_path):
             '    elif value == 16: return 180\n'
             '    elif value == 32: return 225\n'
             '    elif value == 64: return 270\n'
-            '    elif value == 128: return 315\n')
+            '    elif value == 128: return 315\n'
+            '    else: return 99999\n')
         arcpy.CalculateField_management(
             flow_dir_points, 'grid_code',
             'Reclass(!{}!)'.format('grid_code'), 'PYTHON', remap_cb)
